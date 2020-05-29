@@ -123,11 +123,9 @@ function loadPlugins() {
 loadPlugins();
 
 freezer.on('champion:choose', (champion) => {
-
 	var state = freezer.get();
-
 	var plugin = state.tab.active;
-
+	console.log(state.plugins);
 	// Check if champion is already been cached before asking the remote plugin
 	if(state.plugins.remote[plugin] && state.plugins.remote[plugin].cache[champion]) {
 		freezer.get().current.set({ champion, champ_data: state.plugins.remote[plugin].cache[champion] || {pages: {}} });
@@ -200,6 +198,20 @@ freezer.on('page:delete', (champion, page) => {
 	});
 });
 
+freezer.on('page:drag', (champion, pagekeys) => {
+	var state = freezer.get();
+	var sorted = {pages: {}};
+	
+	pagekeys.forEach((key) => {
+		sorted.pages[key] = state.current.champ_data.pages[key];
+	});
+
+	console.log(sorted);
+	
+	plugins[state.tab.active].saveAllPages(champion, sorted);
+	state.current.champ_data.pages.set(sorted.pages);	
+});
+
 freezer.on('page:unlinkbookmark', (champion, page) => {
 	if(freezer.get().lastbookmarkedpage.champion == champion && freezer.get().lastbookmarkedpage.page == page)
 		freezer.get().lastbookmarkedpage.set({page: null, champion: null});
@@ -216,7 +228,7 @@ freezer.on('page:bookmark', (champion, pagename) => {
 	page = state.current.champ_data.pages[pagename];
 	console.log(page)
 
-	plugins["local"].setPage(champion, page);
+	plugins["local"].savePage(champion, page);
 	freezer.get().lastbookmarkedpage.set({ champion, page: pagename });
 	freezer.get().lastsyncedpage.set({ champion: null, page: null, loading: false });
 });
@@ -234,7 +246,7 @@ freezer.on('page:syncbookmark', (champion, page) => {
 			freezer.get().lastsyncedpage.set({champion: null, page: null, loading: false});
 			return;
 		}
-		plugins[state.tab.active].setPage(champion, _page);
+		plugins[state.tab.active].savePage(champion, _page);
 		plugins[state.tab.active].getPages(champion, (res) => {
 			state.current.champ_data.set(res);
 			freezer.get().lastsyncedpage.set({champion, page: _page.name, loading: false});
@@ -299,7 +311,7 @@ freezer.on('currentpage:download', () => {
 	var champion = state.current.champion;
 	var page = state.connection.page;
 
-	plugins[state.tab.active].setPage(champion, page);
+	plugins[state.tab.active].savePage(champion, page);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});

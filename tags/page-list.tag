@@ -18,9 +18,9 @@
     </virtual>
   </h2>
 
-  <div if={ opts.current.champion } class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
-    <div class="item" each={ page, key in opts.current.champ_data.pages }>
-      <div class="right floated content" data-key={ key }>
+  <div if={ opts.current.champion } id="pagelist" class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
+    <div class="item" each={ page, key in opts.current.champ_data.pages } data-key={ key }> 
+      <div class="right floated content">
         
         <div class={ opts.connection.page && opts.connection.page.isEditable && opts.connection.summonerLevel >= 10 ? "ui icon button" : "ui icon button disabled" } data-key={key} onclick={ uploadPage } data-tooltip={ i18n.localise('pagelist.uploadpage') } data-position="left center" data-inverted="">
           <i class={ opts.lastuploadedpage.page == key && opts.lastuploadedpage.champion == opts.current.champion ? (opts.lastuploadedpage.loading ? "notched circle loading icon" : (opts.lastuploadedpage.valid === false ? "warning sign icon" : "checkmark icon")) : "upload icon" } data-key={key}></i>
@@ -55,7 +55,43 @@
   <script>
 
 		this.on('updated', function() {
-      if (process.platform != 'darwin') $('.page-list-tooltip').popup()
+      if (process.platform != 'darwin') $('.page-list-tooltip').popup();
+
+      // Make pagelist drag-sortable only on Local tab and if pages > 1
+      if (opts.plugins.local[opts.tab.active] && Object.keys(opts.current.champ_data.pages).length > 1) {
+        var sortable = Sortable.create(pagelist, {
+          sort: true,
+          //handle: ".item",      // can't use rune images as handle due to popups
+          swapThreshold: 0.3,     // "sensitivity", [0..1] - less means you have to drag farther to trigger a swap
+          animation: 100,
+          group: opts.current.champion,
+          store: {
+            get: function (sortable) {
+              var order = localStorage.getItem(sortable.options.group.name);
+              return order ? order.split('|') : [];
+            },
+            set: function (sortable) {
+              var order = sortable.toArray();
+              localStorage.setItem(sortable.options.group.name, order.join('|'));
+            }
+          },
+
+          // Element dragging ended
+          onEnd: function (evt) {
+            // If a page actually changed its position
+            if (evt.oldIndex !== evt.newIndex) {
+              var pagekeys = [];
+              var pagelistItems = document.getElementById('pagelist').children;
+              // get an array of page keys according to their updated order
+              _.forEach(pagelistItems, (item, index) => {
+                pagekeys[index] = item.getAttribute('data-key');
+              });
+              console.log(pagekeys);
+              freezer.emit("page:drag", opts.current.champion, pagekeys);
+            }
+          }
+        });
+      }
 		});
     this.on('mount', function() {
       if (process.platform != 'darwin') $('.page-list-tooltip').popup()

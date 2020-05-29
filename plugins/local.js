@@ -40,9 +40,13 @@ var plugin = {
 		store.delete(`local.${champion}.pages.${page}.bookmark`);
 	},
 
-	setPage(champion, page) {
+	savePage(champion, page) {
 		var pages = store.get(`local.${champion}.pages`) || {};
 		pages[page.name] = page;
+		store.set(`local.${champion}.pages`, pages);
+	},
+
+	saveAllPages(champion, pages) {
 		store.set(`local.${champion}.pages`, pages);
 	},
 
