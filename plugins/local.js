@@ -41,9 +41,8 @@ var plugin = {
 	},
 
 	savePage(champion, page) {
-		var pages = store.get(`local.${champion}.pages`) || {};
-		pages[page.name] = page;
-		store.set(`local.${champion}.pages`, pages);
+		var pagename = page.name.replace(/\./g, '\\.');
+		store.set(`local.${champion}.pages.${pagename}`, page);
 	},
 
 	saveAllPages(champion, pages) {

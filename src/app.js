@@ -125,7 +125,7 @@ loadPlugins();
 freezer.on('champion:choose', (champion) => {
 	var state = freezer.get();
 	var plugin = state.tab.active;
-	console.log(state.plugins);
+	
 	// Check if champion is already been cached before asking the remote plugin
 	if(state.plugins.remote[plugin] && state.plugins.remote[plugin].cache[champion]) {
 		freezer.get().current.set({ champion, champ_data: state.plugins.remote[plugin].cache[champion] || {pages: {}} });
@@ -200,16 +200,18 @@ freezer.on('page:delete', (champion, page) => {
 
 freezer.on('page:drag', (champion, pagekeys) => {
 	var state = freezer.get();
-	var sorted = {pages: {}};
+	var sorted = {};
 	
 	pagekeys.forEach((key) => {
-		sorted.pages[key] = state.current.champ_data.pages[key];
+		sorted[key] = state.current.champ_data.pages[key];
 	});
-
 	console.log(sorted);
 	
 	plugins[state.tab.active].saveAllPages(champion, sorted);
-	state.current.champ_data.pages.set(sorted.pages);	
+	state.current.champ_data.set('pages', {});
+	plugins[state.tab.active].getPages(champion, (res) => {
+		state.current.champ_data.set(res);	
+	});
 });
 
 freezer.on('page:unlinkbookmark', (champion, page) => {

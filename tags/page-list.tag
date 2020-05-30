@@ -64,21 +64,10 @@
           //handle: ".item",      // can't use rune images as handle due to popups
           swapThreshold: 0.3,     // "sensitivity", [0..1] - less means you have to drag farther to trigger a swap
           animation: 100,
-          group: opts.current.champion,
-          store: {
-            get: function (sortable) {
-              var order = localStorage.getItem(sortable.options.group.name);
-              return order ? order.split('|') : [];
-            },
-            set: function (sortable) {
-              var order = sortable.toArray();
-              localStorage.setItem(sortable.options.group.name, order.join('|'));
-            }
-          },
 
           // Element dragging ended
           onEnd: function (evt) {
-            // If a page actually changed its position
+            // If the page actually changed its position
             if (evt.oldIndex !== evt.newIndex) {
               var pagekeys = [];
               var pagelistItems = document.getElementById('pagelist').children;
@@ -86,7 +75,7 @@
               _.forEach(pagelistItems, (item, index) => {
                 pagekeys[index] = item.getAttribute('data-key');
               });
-              console.log(pagekeys);
+              console.log("sorted order:", pagekeys);
               freezer.emit("page:drag", opts.current.champion, pagekeys);
             }
           }
