@@ -153,7 +153,6 @@ freezer.on("tab:switch", (tab) => {
 	freezer.get().tab.set({ active: tab, loaded: true });
 	settings.set("lasttab", tab);
 
-
 	var state = freezer.get();
 
 	var plugin = state.tab.active;
@@ -207,12 +206,6 @@ freezer.on('page:drag', (champion, pagekeys) => {
 	});
 	
 	plugins[state.tab.active].saveAllPages(champion, sorted);
-	freezer.get().current.champ_data.set({ pages: {} });
-	plugins[state.tab.active].getPages(champion, (res) => {
-		freezer.get().current.champ_data.set(res).now();	
-	}); 
-
-	console.log(freezer.get().current.champ_data);
 });
 
 freezer.on('page:unlinkbookmark', (champion, pagename) => {
@@ -237,7 +230,7 @@ freezer.on('page:bookmark', (champion, pagename) => {
 });
 
 freezer.on('page:syncbookmark', (champion, pagename) => {
-	freezer.get().lastsyncedpage.set({champion, page, loading: true});
+	freezer.get().lastsyncedpage.set({champion, pagename, loading: true});
 
 	var state = freezer.get();
 

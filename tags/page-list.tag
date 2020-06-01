@@ -18,8 +18,8 @@
     </virtual>
   </h2>
 
-  <div if={ opts.current.champion } id="pagelist" class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
-    <div class={ opts.plugins.local[opts.tab.active] ? "item local" : "item" } each={ page, key in opts.current.champ_data.pages } data-key={ key } draggable = { opts.plugins.local[opts.tab.active] ? "true" : "false" }> 
+  <div if={ opts.current.champion } id={ opts.plugins.local[opts.tab.active] ? "pagelist-local" : "pagelist" } class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
+    <div class="item" each={ page, key in opts.current.champ_data.pages } data-key={ key }> 
       <div class="right floated content">
         
         <div class={ opts.connection.page && opts.connection.page.isEditable && opts.connection.summonerLevel >= 10 ? "ui icon button" : "ui icon button disabled" } data-key={key} onclick={ uploadPage } data-tooltip={ i18n.localise('pagelist.uploadpage') } data-position="left center" data-inverted="">
@@ -63,109 +63,26 @@
       // Make pagelist drag-sortable only on Local tab and if pages >= 2
       if (!opts.plugins.local[opts.tab.active] || Object.keys(opts.current.champ_data.pages).length < 2) return;
 
-      var items = document.querySelectorAll('#pagelist .item.local');
-      [].forEach.call(items, function(item) {
-        item.addEventListener('dragstart', handleDragStart, false);
-        item.addEventListener('dragenter', handleDragEnter, false)
-        item.addEventListener('dragover', handleDragOver, false);
-        item.addEventListener('dragleave', handleDragLeave, false);
-        item.addEventListener('drop', handleDrop, false);
-        item.addEventListener('dragend', handleDragEnd, false);
+      // Init sortable list
+      sortable('#pagelist-local', {
+        forcePlaceholderSize: true
       });
 
-      var dragItem = null;
+      // 'sortupdate' event is triggered when the user stopped sorting and the DOM position has changed
+      sortable('#pagelist-local')[0].addEventListener('sortupdate', function(e) {
+        // e.detail.destination.items - {Array} Sortable Items after the move
+        console.log(e.detail.destination.items);
+        // Do nothing if item didn't change its position
+        if (e.detail.origin.index === e.detail.destination.elementIndex) return;
 
-      function handleDragStart(e) {
-        // 'this' is dragged item
-        this.style.opacity = '0.4';
-
-        dragItem = this;
-        console.log("FROM:", this.getAttribute('data-key'));
-
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text', dragItem.getAttribute('data-key'));
-        console.log(e.dataTransfer);
-      }
-
-      function handleDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        return false;
-      }
-
-      function handleDragEnter(e) {
-        // 'this' is current hover target
-        this.classList.add('over');
-      }
-
-      function handleDragLeave(e) {
-        this.classList.remove('over'); 
-      }
-
-      function handleDrop(e) {
-        // 'this' is current target element.
-        console.log("TO:", this.getAttribute('data-key'));
-        // Don't do anything if dropping the same column we're dragging.
-        if (dragItem.getAttribute('data-key') == this.getAttribute('data-key')) return;
-        // swap data-keys
-        dragItem.setAttribute('data-key', this.getAttribute('data-key'));
-        this.setAttribute('data-key', e.dataTransfer.getData('text'));
-        
         var pagekeys = [];
-        var pagelistItems = document.getElementById('pagelist').children;
-        // get an array of page keys according to their updated order
-        _.forEach(pagelistItems, (item, index) => {
+        // Create array of sorted pages' names
+        e.detail.destination.items.forEach(function(item, index) {
           pagekeys[index] = item.getAttribute('data-key');
         });
         console.log("sorted order:", pagekeys);
         freezer.emit("page:drag", opts.current.champion, pagekeys);
-        
-        [].forEach.call(items, function(item) {
-          item.removeEventListener('dragstart', handleDragStart, false);
-          item.removeEventListener('dragenter', handleDragEnter, false)
-          item.removeEventListener('dragover', handleDragOver, false);
-          item.removeEventListener('dragleave', handleDragLeave, false);
-          item.removeEventListener('drop', handleDrop, false);
-          item.removeEventListener('dragend', handleDragEnd, false);
-        });
-
-        return false;
-      }
-
-      function handleDragEnd(e) {
-        // 'this' is dragged item
-        [].forEach.call(items, function (item) {
-          item.classList.remove('over');
-        });
-
-        this.style.opacity = '1';
-      }
-
-    
-
-      /*var sortable = Sortable.create(pagelist, {
-        sort: true,
-        //handle: ".item",      // can't use rune images as handle due to popups
-        swapThreshold: 0.3,     // "sensitivity", [0..1] - less means you have to drag farther to trigger a swap
-        animation: 100,
-
-        // Element dragging ended
-        onEnd: function (evt) {
-          evt.preventUpdate = true;
-          
-          // If the page actually changed its position
-          if (evt.oldIndex !== evt.newIndex) {
-            var pagekeys = [];
-            var pagelistItems = document.getElementById('pagelist').children;
-            // get an array of page keys according to their updated order
-            _.forEach(pagelistItems, (item, index) => {
-              pagekeys[index] = item.getAttribute('data-key');
-            });
-            console.log("sorted order:", pagekeys);
-            freezer.emit("page:drag", opts.current.champion, pagekeys);
-          }
-        }
-      });*/
+      });
 		});
 
     findTooltip(page, index) {
