@@ -19,25 +19,25 @@ var plugin = {
 		callback(res);
 	},
 
-	favPage(champion, page) {
-		if(store.get(`local.${champion}.fav`) == page) {
+	favPage(champion, pagename) {
+		if(store.get(`local.${champion}.fav`) == pagename) {
 			store.set(`local.${champion}.fav`, null);
 		}
-		else store.set(`local.${champion}.fav`, page);
+		else store.set(`local.${champion}.fav`, pagename);
 	},
 
-	deletePage(champion, page) {
-		console.log(champion, page)
-		page = page.replace(/\./g, '\\.');
-		store.delete(`local.${champion}.pages.${page}`);
-		if(store.get(`local.${champion}.fav`) == page) {
+	deletePage(champion, pagename) {
+		console.log(champion, pagename)
+		pagename = pagename.replace(/\./g, '\\.');
+		store.delete(`local.${champion}.pages.${pagename}`);
+		if(store.get(`local.${champion}.fav`) == pagename) {
 			store.set(`local.${champion}.fav`, null);
 		}
 	},
 
-	unlinkBookmark(champion, page) {
-		page = page.replace(/\./g, '\\.');
-		store.delete(`local.${champion}.pages.${page}.bookmark`);
+	unlinkBookmark(champion, pagename) {
+		pagename = pagename.replace(/\./g, '\\.');
+		store.delete(`local.${champion}.pages.${pagename}.bookmark`);
 	},
 
 	savePage(champion, page) {
@@ -49,8 +49,8 @@ var plugin = {
 		store.set(`local.${champion}.pages`, pages);
 	},
 
-	confirmPageValidity(champion, page, res) {
-		page = page.replace(/\./g, '\\.');
+	confirmPageValidity(champion, pagename, res) {
+		pagename = pagename.replace(/\./g, '\\.');
 		/*
 		 * If the page returned is invalid, mark it as such in the store.
 		 * This behaviour is not predictable (a page can become invalid at any time),
@@ -58,14 +58,14 @@ var plugin = {
 		 */
 		if(res.isValid === false) {
 			console.log("Warning: page incomplete or malformed.");
-			store.set(`local.${champion}.pages.${page}.isValid`, false);
+			store.set(`local.${champion}.pages.${pagename}.isValid`, false);
 		}
 		/*
 		 * If the page returned is valid, but we have an invalid copy in the store,
 		 * then replace the local page with the updated one.
 		 */
-		else if(store.get(`local.${champion}.pages.${page}.isValid`) === false) {
-			store.set(`local.${champion}.pages.${page}`, res);
+		else if(store.get(`local.${champion}.pages.${pagename}.isValid`) === false) {
+			store.set(`local.${champion}.pages.${pagename}`, res);
 		}
 	}
 }

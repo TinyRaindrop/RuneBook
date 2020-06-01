@@ -27,19 +27,19 @@ var state = {
 
 	lastuploadedpage: {
 		champion: null,
-		page: null,
+		pagename: null,
 		valid: false,
 		loading: false
 	},
 
 	lastbookmarkedpage: {
 		champion: null,
-		page: null
+		pagename: null
 	},
 
 	lastsyncedpage: {
 		champion: null,
-		page: null,
+		pagename: null,
 		loading: false
 	},
 

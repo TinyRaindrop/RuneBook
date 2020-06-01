@@ -182,17 +182,17 @@ freezer.on("tab:switch", (tab) => {
 	});
 });
 
-freezer.on('page:fav', (champion, page) => {
+freezer.on('page:fav', (champion, pagename) => {
 	var state = freezer.get();
-	plugins[state.tab.active].favPage(champion, page);
+	plugins[state.tab.active].favPage(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
 });
 
-freezer.on('page:delete', (champion, page) => {
+freezer.on('page:delete', (champion, pagename) => {
 	var state = freezer.get();
-	plugins[state.tab.active].deletePage(champion, page);
+	plugins[state.tab.active].deletePage(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
@@ -205,20 +205,21 @@ freezer.on('page:drag', (champion, pagekeys) => {
 	pagekeys.forEach((key) => {
 		sorted[key] = state.current.champ_data.pages[key];
 	});
-	console.log(sorted);
 	
 	plugins[state.tab.active].saveAllPages(champion, sorted);
-	state.current.champ_data.set('pages', {});
+	freezer.get().current.champ_data.set({ pages: {} });
 	plugins[state.tab.active].getPages(champion, (res) => {
-		state.current.champ_data.set(res);	
-	});
+		freezer.get().current.champ_data.set(res).now();	
+	}); 
+
+	console.log(freezer.get().current.champ_data);
 });
 
-freezer.on('page:unlinkbookmark', (champion, page) => {
-	if(freezer.get().lastbookmarkedpage.champion == champion && freezer.get().lastbookmarkedpage.page == page)
+freezer.on('page:unlinkbookmark', (champion, pagename) => {
+	if(freezer.get().lastbookmarkedpage.champion == champion && freezer.get().lastbookmarkedpage.page == pagename)
 		freezer.get().lastbookmarkedpage.set({page: null, champion: null});
 	var state = freezer.get();
-	plugins[state.tab.active].unlinkBookmark(champion, page);
+	plugins[state.tab.active].unlinkBookmark(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
@@ -235,12 +236,12 @@ freezer.on('page:bookmark', (champion, pagename) => {
 	freezer.get().lastsyncedpage.set({ champion: null, page: null, loading: false });
 });
 
-freezer.on('page:syncbookmark', (champion, page) => {
+freezer.on('page:syncbookmark', (champion, pagename) => {
 	freezer.get().lastsyncedpage.set({champion, page, loading: true});
 
 	var state = freezer.get();
 
-	page = state.current.champ_data.pages[page];
+	var page = state.current.champ_data.pages[pagename];
 	console.log(page)
 
 	plugins[page.bookmark.remote.id].syncBookmark(page.bookmark, (_page) => {
@@ -256,24 +257,24 @@ freezer.on('page:syncbookmark', (champion, page) => {
 	});
 });
 
-freezer.on('page:upload', (champion, page) => {
+freezer.on('page:upload', (champion, pagename) => {
 	var state = freezer.get();
-	console.log("DEV page", page);
-	console.log("DEV page data", state.current.champ_data.pages[page]);
+	console.log("DEV page", pagename);
+	console.log("DEV page data", state.current.champ_data.pages[pagename]);
 	console.log("DEV state pages", state.current.champ_data.pages);
-	page_data = state.current.champ_data.pages[page];
-	page_data.name = page;
+	page_data = state.current.champ_data.pages[pagename];
+	page_data.name = pagename;
 	page_data.current = true;
 
 	console.log("page.id, page.isEditable", state.connection.page.id, state.connection.page.isEditable);
 	if(state.connection.page.id && state.connection.page.isEditable && state.connection.summonerLevel >= 10) {
 		freezer.off('/lol-perks/v1/currentpage:Update');
-		freezer.get().lastuploadedpage.set({ champion, page, loading: true });
+		freezer.get().lastuploadedpage.set({ champion, pagename, loading: true });
 		api.del("/lol-perks/v1/pages/" + freezer.get().connection.page.id).then((res) => {
 			console.log("api delete current page", res);
 
 			// stat shards check
-			page_data = freezer.get().current.champ_data.pages[page].toJS();
+			page_data = freezer.get().current.champ_data.pages[pagename].toJS();
 			if(!page_data.selectedPerkIds[6] && !page_data.selectedPerkIds[7] && !page_data.selectedPerkIds[8]) {
 				page_data.selectedPerkIds = page_data.selectedPerkIds.concat([5008, 5002, 5003]);
 			}
@@ -293,11 +294,11 @@ freezer.on('page:upload', (champion, page) => {
 					freezer.on('/lol-perks/v1/currentpage:Update', handleCurrentPageUpdate);
 				});
 				freezer.on('/lol-perks/v1/currentpage:Update', handleCurrentPageUpdate);
-				freezer.get().lastuploadedpage.set({ champion, page, valid: res.isValid === true, loading: false });
+				freezer.get().lastuploadedpage.set({ champion, pagename, valid: res.isValid === true, loading: false });
 				
 				var state = freezer.get();
 				if(plugins[state.tab.active].local) {
-					plugins[state.tab.active].confirmPageValidity(champion, page, res);
+					plugins[state.tab.active].confirmPageValidity(champion, pagename, res);
 					plugins[state.tab.active].getPages(champion, (res) => {
 						state.current.champ_data.set(res);
 					});
