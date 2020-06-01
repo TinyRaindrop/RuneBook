@@ -57,7 +57,7 @@
       if (process.platform != 'darwin') $('.page-list-tooltip').popup();
     });
 
-		this.on('updated', function() {
+    this.on('updated', function() {
       if (process.platform != 'darwin') $('.page-list-tooltip').popup();
 
       // Make pagelist drag-sortable only on Local tab and if pages >= 2
