@@ -56,7 +56,7 @@ var state = {
 
 	championsinfo: {},
 
-	lolversion: '',
+	lolversions: [],
 
 	champselect: false,
 	autochamp: false,

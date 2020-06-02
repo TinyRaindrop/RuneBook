@@ -107,26 +107,39 @@ function extractPage(champion) {
   };
 }
 
-async function getDataSource(champion) {
-  try {
-    let lolVersion = freezer.get().lolversion;
-    let lolVersionUGG = getUGGFormattedLolVersion(lolVersion);
-    
-    const overviewVersion = "1.4.0";
-    const championDataUrl = `https://static.u.gg/assets/lol/riot_static/${lolVersion}/data/en_US/champion.json`;
-    console.log(`U.GG DataUrl => ${championDataUrl}`);
+async function getDataSource(champion, version = null) {
+  let returnVal = [];
 
-    const championData = await getJson(championDataUrl);
-    const championId = championData.data[champion].key;
-    console.log(`U.GG => ${lolVersionUGG}`);
-    const championStatsUrl = `https://stats2.u.gg/lol/${uGGAPIVersion}/overview/${lolVersionUGG}/ranked_solo_5x5/${championId}/${overviewVersion}.json`;
+  // try last two lol-version
+  for (const lolVersion of freezer.get().lolversions.slice(0, 2)) {
+      try {
+          console.log(lolVersion);
+          let lolVersionUGG = getUGGFormattedLolVersion(lolVersion);
 
-    console.log(`U.GG ReqUrl => ${championStatsUrl}`);
+          const overviewVersion = "1.4.0";
+          const championDataUrl = `https://static.u.gg/assets/lol/riot_static/${lolVersion}/data/en_US/champion.json`;
+          console.log(`U.GG DataUrl => ${championDataUrl}`);
 
-    return getJson(championStatsUrl);
-  } catch (e) {
-    throw Error(e);
-  }
+          const championData = await getJson(championDataUrl);
+          const championId = championData.data[champion].key;
+          console.log(`U.GG => ${lolVersionUGG}`);
+          const championStatsUrl = `https://stats2.u.gg/lol/${uGGAPIVersion}/overview/${lolVersionUGG}/ranked_solo_5x5/${championId}/${overviewVersion}.json`;
+          console.log(`U.GG ReqUrl => ${championStatsUrl}`);
+
+          returnVal = await getJson(championStatsUrl);
+
+          if (returnVal.length > 0)
+              break;
+      } catch (e) {
+          if (e.name === 'StatusCodeError' && e.statusCode == 403) {
+              continue;
+          } else {
+              throw Error(e);
+          }
+      }
+  };
+
+  return returnVal;
 }
 
 async function updateBookmark(champion, pageId, callback) {
