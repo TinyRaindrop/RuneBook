@@ -15,6 +15,7 @@ settings = new Store({
 		autochamp: false,
 		lasttab: "local",
 		darktheme: false,
+		sortablelocal: false,
 	}
 });
 

@@ -18,7 +18,7 @@
     </virtual>
   </h2>
 
-  <div if={ opts.current.champion } id={ opts.plugins.local[opts.tab.active] ? "pagelist-local" : "pagelist" } class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
+  <div if={ opts.current.champion } id={ opts.plugins.local[opts.tab.active] ? "runepages-local" : "runepages" } class="ui middle aligned relaxed divided list" style="height: 100%; overflow-y: auto;">
     <div class="item" each={ page, key in opts.current.champ_data.pages } data-key={ key }> 
       <div class="right floated content">
         
@@ -48,7 +48,7 @@
           <img draggable="false" class="ui mini circular image" src=./img/runesReforged/perk/{(page.selectedPerkIds[index] && page.selectedPerkIds[index] !== -1) ? page.selectedPerkIds[index] : "qm"}.png>
         </div>
       </div>
-      <div class="middle aligned content"><i class={ page.isValid === false ? "red warning sign icon" : "" }></i> {key}</div>
+      <div class="middle aligned content pagename"><i class={ page.isValid === false ? "red warning sign icon" : "" }></i> {key}</div>
     </div>
   </div>
 
@@ -60,18 +60,31 @@
     this.on('updated', function() {
       if (process.platform != 'darwin') $('.page-list-tooltip').popup();
 
-      // Make pagelist drag-sortable only on Local tab and if pages >= 2
-      if (!opts.plugins.local[opts.tab.active] || Object.keys(opts.current.champ_data.pages).length < 2) return;
+      if (opts.current.champion) sortableCheck('runepages-local');
+		});
 
+    function sortableCheck(list) {
+      // Make pagelist drag-sortable only on Local tab and if pages >= 2
+      if (!opts.plugins.local[opts.tab.active]) return;
+      if (opts.sortablelocal && Object.keys(opts.current.champ_data.pages).length >= 2) { 
+        initSortableLocal(list);
+      }
+      // If settings switch was turned off or tab was changed, remove the ability to sort
+      else if (document.getElementById(list).classList.contains('sortable')) destroySortableLocal(list);
+    }
+
+    function initSortableLocal(list) {
       // Init sortable list
-      sortable('#pagelist-local', {
+      sortable('#'+list, {
+        handle: '.pagename',
         forcePlaceholderSize: true
       });
+      sortable('#'+list, 'enable');
+      document.getElementById(list).classList.add('sortable');
 
       // 'sortupdate' event is triggered when the user stopped sorting and the DOM position has changed
-      sortable('#pagelist-local')[0].addEventListener('sortupdate', function(e) {
-        // e.detail.destination.items - {Array} Sortable Items after the move
-        console.log(e.detail.destination.items);
+      sortable('#'+list)[0].addEventListener('sortupdate', function(e) {
+        // console.log(e.detail.destination.items);   // Array of Sortable Items after the move
         // Do nothing if item didn't change its position
         if (e.detail.origin.index === e.detail.destination.elementIndex) return;
 
@@ -83,7 +96,13 @@
         console.log("sorted order:", pagekeys);
         freezer.emit("page:drag", opts.current.champion, pagekeys);
       });
-		});
+    }
+
+    function destroySortableLocal(list) {
+      sortable('#'+list, 'destroy');
+      document.getElementById(list).classList.remove('sortable');
+      console.log('sortable destroyed');
+    }
 
     findTooltip(page, index) {
       if(!opts.tooltips.rune) return;

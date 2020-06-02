@@ -81,9 +81,21 @@
            <h4 class="ui horizontal divider header">
             <i class="yellow flask icon" style="padding-right:.5em;font-size:1em"></i><i1-8n>settings.experimental</i1-8n>
           </h4>
-          <div class="ui toggle checkbox">
-            <input type="checkbox" name="darktheme" onchange={ toggleDarkTheme } ref="darktheme">
-            <label><i1-8n>settings.darktheme</i1-8n></label>
+          <div class="ui two column grid">
+            <div class="row">
+              <div class="column">
+                <div class="ui toggle checkbox">
+                  <input type="checkbox" name="darktheme" onchange={ toggleDarkTheme } ref="darktheme">
+                  <label><i1-8n>settings.darktheme</i1-8n></label>
+                </div>
+              </div>
+              <div class="column">
+                <div class="ui toggle checkbox">
+                  <input type="checkbox" name="sortablelocal" onchange={ toggleSortableLocal } ref="sortablelocal">
+                  <label><i1-8n>settings.sortablelocal</i1-8n></label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <h4 class="ui horizontal divider header">
@@ -109,6 +121,7 @@
       this.refs.lang.value = opts.configfile.lang;
       this.refs.pathdiscovery.checked = opts.configfile.pathdiscovery;
       this.refs.darktheme.checked = opts.configfile.darktheme;
+      this.refs.sortablelocal.checked = opts.configfile.sortablelocal;
     });
 
     freezer.on("update:downloaded", () => {
@@ -144,6 +157,11 @@
     toggleDarkTheme(evt) {
       // evt.preventUpdate = true;
       freezer.emit("darktheme:switch", this.refs.darktheme.checked);
+    }
+
+    toggleSortableLocal(evt) {
+      evt.preventUpdate = true;
+      freezer.emit("sortablelocal:switch", this.refs.sortablelocal.checked);
     }
 
     doUpdate(evt) {

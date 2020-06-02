@@ -7,6 +7,7 @@ freezer.get().configfile.set({
 	leaguepath: settings.get("leaguepath"),
 	pathdiscovery: settings.get("pathdiscovery"),
 	darktheme: settings.get("darktheme"),
+	sortablelocal: settings.get("sortablelocal"),
 	lang: settings.get("lang")
 });
 
@@ -46,6 +47,11 @@ freezer.on("pathdiscovery:switch", (val) => {
 freezer.on("darktheme:switch", (val) => {
 	freezer.get().configfile.set("darktheme", val);
 	settings.set("darktheme", val);
+});
+
+freezer.on("sortablelocal:switch", (val) => {
+	freezer.get().configfile.set("sortablelocal", val);
+	settings.set("sortablelocal", val);
 });
 
 freezer.on("lang:update", (val) => {
