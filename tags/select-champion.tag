@@ -31,6 +31,17 @@
           </div>
 
         </div>
+        
+        <div class="row" style="margin-top: -20px;">
+          <div class="column middle aligned ui champicons" style="display: flex; flex-direction: row; justify-content: center;">
+            <div each={ champ in freezer.get().favChampions } class="ui circular icon button tooltip current-page-tooltip" style="position: relative; margin: 0; padding: 0 8px; background-color: transparent; cursor: default;"
+            data-key={ champ.name }>
+              <img draggable="false" class="ui mini circular image" src={champ.name ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champ.name+".png" : "./img/unknown.png"}>
+              <img draggable="false" class="ui mini-ring image circular" style="position: absolute; top: 0; left: 8px; width: 36px" src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>

@@ -20,6 +20,14 @@ var state = {
 		},
 	},
 
+	favChampions: [
+		{name: "Vi"},
+		{name: "Trundle"},
+		{name: "Zyra"},
+		{name: "Leona"},
+		{name: "Morgana"},
+	],
+
 	tab: {
 		active: "local",
 		loaded: true,
