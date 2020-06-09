@@ -231,3 +231,32 @@ page-list .ui.button:active {
 	border-top: 1px solid #71552B !important;
 	box-shadow: none !important;
 }
+
+.champion-icons {
+	display: flex !important;
+	flex-direction: row !important;
+	justify-content: center;
+}
+
+.champion-icons > .icon {
+	margin: 0 8px; 
+	padding: 0; 
+	border: 2px solid #BD9D5E;
+	border-radius: 50%;
+	overflow: hidden;
+}
+
+.champion-icons > .icon > img {
+	opacity: 1;
+	transition: transform 0.2s ease-in-out;
+  transform-origin: center center;
+}
+
+.champion-icons > .icon:hover > img {
+	transform: scale(1.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

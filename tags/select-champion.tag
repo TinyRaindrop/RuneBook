@@ -33,11 +33,9 @@
         </div>
         
         <div class="row" style="margin-top: -20px;">
-          <div class="column middle aligned ui champicons" style="display: flex; flex-direction: row; justify-content: center;">
-            <div each={ champ in freezer.get().favChampions } class="ui circular icon button tooltip current-page-tooltip" style="position: relative; margin: 0; padding: 0 8px; background-color: transparent; cursor: default;"
-            data-key={ champ.name }>
-              <img draggable="false" class="ui mini circular image" src={champ.name ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champ.name+".png" : "./img/unknown.png"}>
-              <img draggable="false" class="ui mini-ring image circular" style="position: absolute; top: 0; left: 8px; width: 36px" src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
+          <div class="column middle aligned ui champion-icons">
+            <div each={ champion in freezer.get().favChampions } class="ui circular icon">
+              <img draggable="false" class="ui mini circular image" src={freezer.get().lolversions[0] ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champion.name+".png" : "./img/unknown.png"} onClick={favChampionClick} data-key={ champion.name }>
             </div>
           </div>
         </div>
@@ -143,6 +141,13 @@
       });
 
       return res;
+    }
+
+    favChampionClick(evt) {
+      evt.preventUpdate = true;
+      var champion = $(evt.target).attr("data-key");
+      console.log(champion);
+			freezer.emit("champion:choose", champion);
     }
 
   </script>
