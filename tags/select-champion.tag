@@ -5,8 +5,8 @@
       <div class="ui equal width grid">
         <div class="row">
           
-          <div class="column">
-            <img draggable="false" class="ui tiny image circular"
+          <div class="column current-champion">
+            <img draggable="false" class="ui tiny image circular photo"
               src={opts.champion ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/${this.opts.champion}.png` : "./img/unknown.png"}>
             <img draggable="false" class="ui tiny-ring image circular" style="position: absolute; top: -2px; left: 12px;" src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
             <img if={ opts.autochamp && opts.champselect } draggable="false" class="ui tiny-spin image circular" style="position: absolute; top: -10px; left: 4px;" src="./img/ring_spinner.png">
@@ -31,21 +31,18 @@
           </div>
 
         </div>
-        
-        <div class="row" style="margin-top: -20px;">
-          <div class="column middle aligned ui champion-icons">
-            <div each={ champion in freezer.get().favChampions } class="ui circular icon">
-              <img draggable="false" class="ui mini circular image" src={freezer.get().lolversions[0] ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champion.name+".png" : "./img/unknown.png"} onClick={favChampionClick} data-key={ champion.name }>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
   </div>
   
-  <div class="ui popup" style="width: 250px;"><i1-8n>champion.autopick.tooltip</i1-8n></div>
+  <div class="ui popup autopick" style="width: 250px;"><i1-8n>champion.autopick.tooltip</i1-8n></div>
+
+  <div class="ui popup champion-photos">
+    <div each={ champion in freezer.get().favChampions } class="photo">
+      <img draggable="false" class="ui mini circular image" src={freezer.get().lolversions[0] ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champion.name+".png" : "./img/unknown.png"} onClick={favChampionClick} data-key={ champion.name }>
+    </div>
+  </div>
 
   <style>
     .tiny-ring {
@@ -97,11 +94,33 @@
         },
       });
 
+      $('.current-champion')
+        .popup({
+          popup   : $('.champion-photos'),
+          /*target  : '.current-champion > .photo',*/
+          position: 'right center',
+          distanceAway  : -140,
+          on      : 'click',
+          delay   : {
+            show: 0,
+            hide: 0
+          }
+        })
+      ;
+
+      favChampionClick(evt) {
+        evt.preventUpdate = true;
+        var champion = $(evt.target).attr("data-key");
+        //console.log(champion);
+        freezer.emit("champion:choose", champion);
+        $('.current-champion').popup('hide');
+      }
+
       $('.ui.search.champion').removeClass("disabled");
 
       $("#autochamp-label").popup({
+        popup: '.ui.popup.autopick',
         position: "bottom right",
-        popup: '.ui.popup',
         delay: {
           show: 800,
           hide: 0
@@ -141,13 +160,6 @@
       });
 
       return res;
-    }
-
-    favChampionClick(evt) {
-      evt.preventUpdate = true;
-      var champion = $(evt.target).attr("data-key");
-      console.log(champion);
-			freezer.emit("champion:choose", champion);
     }
 
   </script>
