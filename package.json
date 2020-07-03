@@ -5,7 +5,7 @@
   "description": "An automatic rune pages manager for League of Legends",
   "main": "./src/main.js",
   "license": "MIT",
-  "repository": "https://github.com/Soundofdarkness/RuneBook",
+  "repository": "https://github.com/TinyRaindrop/RuneBook",
   "author": {
     "name": "OrangeNote",
     "url": "https://github.com/OrangeNote"

@@ -117,7 +117,7 @@ app.on('ready', function () {
     win.webContents.on("did-finish-load", () => {
         if (isDev) return;
         request({
-                url: 'https://api.github.com/repos/Soundofdarkness/RuneBook/releases/latest',
+                url: 'https://api.github.com/repos/TinyRaindrop/RuneBook/releases/latest',
                 headers: {
                     'User-Agent': 'request'
                 }
@@ -176,7 +176,7 @@ ipcMain.on("update:do", (event, arg) => {
     }
     else {
         win.webContents.send('update:downloaded');
-        shell.openExternal(`https://github.com/Soundofdarkness/RuneBook/releases/download/v${latestv}/RuneBook-${latestv}-mac.zip`)
+        shell.openExternal(`https://github.com/TinyRaindrop/RuneBook/releases/download/v${latestv}/RuneBook-${latestv}-mac.zip`)
     }
 });
 
