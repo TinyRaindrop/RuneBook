@@ -1,7 +1,7 @@
 {
   "name": "runebook",
   "productName": "RuneBook",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "An automatic rune pages manager for League of Legends",
   "main": "./src/main.js",
   "license": "MIT",
@@ -45,10 +45,10 @@
     "ws": "^7.3.0"
   },
   "devDependencies": {
-    "electron": "^9.0.0",
-    "electron-builder": "^22.6.1",
+    "electron": "^9.0.4",
+    "electron-builder": "^22.7.0",
     "electron-packager": "^14.2.1",
-    "xo": "^0.30.0"
+    "xo": "^0.32.0"
   },
   "xo": {
     "envs": [

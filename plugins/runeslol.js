@@ -28,7 +28,7 @@ function extractPage(html, pageName, pageUrl) {
 	
 	$(".pure-u-8-24 > .runetitle").each(function() { keystones.push($(this).text()); });
 
-	stylesMap = Object.keys(stylesMap).length == 0 ? getStylesMap() : stylesMap;
+	stylesMap = Object.keys(stylesMap).length == 0 ? Object.fromEntries(Object.entries(getStylesMap()).map(([k, v]) => [k.toUpperCase(), v])) : stylesMap;
 	perksMap = Object.keys(perksMap).length == 0 ? getPerksMapMap() : perksMap;
 
 	page.primaryStyleId = stylesMap[keystones[0]];
