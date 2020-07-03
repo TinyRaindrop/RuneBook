@@ -1,7 +1,7 @@
 {
   "name": "runebook",
   "productName": "RuneBook",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "An automatic rune pages manager for League of Legends",
   "main": "./src/main.js",
   "license": "MIT",
