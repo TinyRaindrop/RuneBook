@@ -1,13 +1,14 @@
 const electron = require('electron');
-const {app, BrowserWindow, ipcMain, shell, dialog} = electron;
-const {autoUpdater} = require("electron-updater");
+const { app, BrowserWindow, Tray, Menu, ipcMain, shell, dialog } = electron;
+const { autoUpdater } = require("electron-updater");
 const path = require('path');
 const url = require('url');
 const request = require('request');
 const isDev = require('electron-is-dev');
 const windowStateKeeper = require("electron-window-state");
+const os = require("os");
 
-require('electron-debug')({enabled: true});
+require('electron-debug')({ enabled: true });
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -35,7 +36,7 @@ function createWindow() {
         minWidth: minWidth,
         minHeight: minHeight,
         maximizable: false,
-        resizable: true, 
+        resizable: true,
         fullScreenable: false,
         x: mainWindowState.x,
         y: mainWindowState.y,
@@ -45,7 +46,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true
-        }      
+        }
     };
 
     // Create a copy of the 'normal' options
@@ -69,8 +70,6 @@ function createWindow() {
     win = new BrowserWindow(options);
 
     mainWindowState.manage(win);
-    win.setResizable(true);
-    win.setFullScreenable(false);
     win.setMenu(null);
 
     // and load the index.html of the app.
@@ -81,13 +80,17 @@ function createWindow() {
     }));
 
     win.webContents.on("did-finish-load", () => {
-        if(splash) splash.close();
+        if (splash) splash.close();
         splash = null;
         win.show();
     });
 
     // Open the DevTools.
     // win.webContents.openDevTools()
+
+    win.on('minimize', () => {
+        win.minimize()
+    })
 
     // Emitted when the window is closed.
     win.on('closed', () => {
@@ -102,8 +105,7 @@ function createWindow() {
             && mainWindowState.x <= display.bounds.x + display.bounds.width
             && mainWindowState.y >= display.bounds.y
             && mainWindowState.y <= display.bounds.y + display.bounds.height)
-        .some(display => display)
-    ;
+        .some(display => display);
 
     if (!isOnADisplay) {
         win.center();
@@ -113,24 +115,50 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+let tray = null
+
 app.on('ready', function () {
     createWindow();
 
-    win.webContents.on("did-finish-load", () => {
-        if (isDev) return;
-        request({
-                url: 'https://api.github.com/repos/Soundofdarkness/RuneBook/releases/latest',
-                headers: {
-                    'User-Agent': 'request'
+    if(os.platform() !== "linux"){ 
+        tray = new Tray(`${__dirname}/../img/logo.png`);
+        tray.setTitle('RuneBook');
+
+        tray.on('click', () => {
+            if (win.isVisible()) {
+                win.hide()
+            } else {
+                win.show()
+            }
+        });
+
+        const contextMenu = Menu.buildFromTemplate([
+            {
+                label: 'Show RuneBook', click: () => {
+                    win.show()
                 }
             },
+            {
+                label: 'Exit', click: () => {
+                    app.isQuiting = true
+                    app.quit()
+                }
+            }
+        ]);
+
+        tray.setContextMenu(contextMenu);
+    }
+
+    win.webContents.on("did-finish-load", () => {
+        request({
+            url: 'https://api.github.com/repos/Soundofdarkness/RuneBook/releases/latest',
+            headers: {
+                'User-Agent': 'request'
+            }
+        },
             function (error, response, data) {
                 if (!error && response && response.statusCode === 200) {
-                    data = JSON.parse(data);
-                    latestv = data.tag_name.substring(1);
-                    if (latestv !== app.getVersion()) {
-                        win.webContents.send('update:ready');
-                    }
+                    win.webContents.send('updateinfo:ready', JSON.parse(data));
                 }
                 else throw Error("github api error");
             })
@@ -152,7 +180,7 @@ app.on('activate', () => {
     if (win === null) {
         createWindow();
     }
-    else if(process.platform === "darwin") {
+    else if (process.platform === "darwin") {
         win.show();
     }
 });
@@ -184,4 +212,29 @@ ipcMain.on("update:do", (event, arg) => {
 
 ipcMain.on("content:reload", () => {
     win.reload();
+});
+
+const forceHide = (evt) => {
+    if(os.platform() === "linux"){
+        win.minimize();
+        return;
+    }
+    evt.preventDefault();
+    win.hide();
+}
+
+const forceMinimize = () => {
+    win.minimize();
+}
+
+ipcMain.on("minimizetotray:enabled", () => {
+    // console.log("set to tray icon on minimize")
+    win.removeListener('minimize', forceMinimize);
+    win.on('minimize', forceHide);
+});
+
+ipcMain.on("minimizetotray:disabled", () => {
+    // console.log("set to minimize on minimize")
+    win.removeListener('minimize', forceHide);
+    win.on('minimize', () => {forceMinimize(); });
 });

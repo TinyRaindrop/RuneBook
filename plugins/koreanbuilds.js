@@ -29,9 +29,7 @@ function extractPage(html, champObj, champion, role, rec, callback, pageType) {
 		if(index % 11 == 0) {
 			pages.push({
 				"name": champObj.name + " " + role + " BC "+ $('#circle-big').text(),
-				"primaryStyleId": -1,
 				"selectedPerkIds": [0, 0, 0, 0, 0, 0],
-				"subStyleId": -1,
 				// "bookmark": {
 				// 	"src": url + "/champion/" + champion + "/" + role + "/" + champObj.version.replace(/\.(?:[0-9]*)$/, '') + '/-1',
 				// 	"meta": {
@@ -52,10 +50,6 @@ function extractPage(html, champObj, champion, role, rec, callback, pageType) {
 		var secondary = $('#reforged-secondary .perk-img-c').attr("src");
 		secondary = secondary.replace("//statics.koreanbuilds.net/perk-types/", "");
 		secondary = secondary.replace(".png", "");
-		if(index % 9 == 0) {
-			pages[pages.length - 1].primaryStyleId = stylesMap[primary];
-			pages[pages.length - 1].subStyleId = stylesMap[secondary];
-		}
 		pages[pages.length - 1].selectedPerkIds[index] = parseInt(rune);
 	});
 

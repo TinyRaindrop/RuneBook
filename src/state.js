@@ -4,7 +4,6 @@ var state = {
 	session: {
 		connected: false,
 		state: ""
-
 	},
 
 	connection: {
@@ -57,23 +56,32 @@ var state = {
 
 	lang: 'en',
 
+	minimizetotray: false,
+
 	configfile: {
 		name: "config.json",
 		cwd: "[default path]"
 	},
 
+	// we could cache this information
 	championsinfo: {},
+	runesreforgedinfo: [],
 
 	lolversions: [],
 
-	champselect: false,
+	champselect: {
+		active: false,
+		gameMode: null,
+		favUploaded: false,
+	},
 	autochamp: false,
 
 	tooltips: {
 		rune: null
 	},
 
-	showchangelog: false
+	showchangelog: false,
+	changelogbody: ''
 };
 
 module.exports = new Freezer(state);

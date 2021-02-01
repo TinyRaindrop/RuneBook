@@ -1,7 +1,7 @@
 {
   "name": "runebook",
   "productName": "RuneBook",
-  "version": "1.10.0",
+  "version": "1.14.0",
   "description": "An automatic rune pages manager for League of Legends",
   "main": "./src/main.js",
   "license": "MIT",
@@ -18,37 +18,47 @@
     "dist": "electron-builder -p onTagOrDraft --win nsis portable",
     "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
-    "dist:all": "electron-builder -mw -p onTagOrDraft"
+    "dist:lin": "electron-builder --linux",
+    "pub:lin": "electron-builder -l AppImage tar.xz -p onTagOrDraft",
+    "dist:all": "electron-builder -mwl -p onTagOrDraft"
   },
   "build": {
+    "artifactName": "${productName}_${version}.${ext}",
+    "mac": {
+      "icon": "build/icon.icns"
+    },
     "win": {
       "icon": "build/icon.ico"
+    },
+    "linux": {
+      "icon": "build/icon.icns"
     }
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.3",
-    "electron-debug": "^3.1.0",
+    "cheerio": "^1.0.0-rc.5",
+    "electron-debug": "^3.2.0",
     "electron-is-dev": "^1.2.0",
-    "electron-store": "^5.1.1",
-    "electron-updater": "^4.3.1 ",
+    "electron-store": "^6.0.1",
+    "electron-updater": "^4.3.5",
     "electron-window-state": "^5.0.3",
     "freezer-js": "^0.14.1",
     "glob": "^7.1.6",
     "jquery": "^3.5.1",
     "lcu-connector": "^2.1.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
+    "marked": "^1.2.8",
     "request": "^2.88.2",
-    "request-promise-native": "^1.0.8",
+    "request-promise-native": "^1.0.9",
     "riot": "^3.13.2",
     "riot-i18n": "^0.2.1",
     "semantic-ui-css": "^2.4.1",
-    "ws": "^7.3.0"
+    "ws": "^7.4.2"
   },
   "devDependencies": {
-    "electron": "^9.0.0",
-    "electron-builder": "^22.6.1",
-    "electron-packager": "^14.2.1",
-    "xo": "^0.30.0"
+    "electron": "^11.2.1",
+    "electron-builder": "^22.9.1",
+    "electron-packager": "^15.2.0",
+    "xo": "^0.37.1"
   },
   "xo": {
     "envs": [

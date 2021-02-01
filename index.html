@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <link rel="stylesheet" type="text/css" href="./node_modules/semantic-ui-css/semantic.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
   <style type="text/css">
     img {
       user-select: none;
@@ -17,10 +18,21 @@
   <script>
     window.$ = window.jQuery = require('jquery');
     var riot = require('riot');
+
+    // add new tag: markup
+    riot.tag('markup', '', function(opts) {
+        this.on('update', function() {
+            let markup = opts.data;
+            if (!markup) return;
+            let html = marked(markup);
+            this.root.innerHTML = html;
+        })
+    });
   </script>
 
   <script src="./node_modules/semantic-ui-css/semantic.min.js"></script>
   <script src="./node_modules/riot-i18n/riot-i18n.js"></script>
+  <script src="./node_modules/marked/marked.min.js"></script>
   <script type="text/javascript">
 
     var freezer = require('./src/state');
@@ -41,6 +53,9 @@
     require('./tags/update-button.tag');
     require('./tags/settings-panel.tag');
     require('./tags/changelog-modal.tag');
+    
+    let selectedTheme = freezer.get().configfile.darktheme ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', selectedTheme);
     
     riot.mount('runebook', freezer.get());
   </script>

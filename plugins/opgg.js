@@ -21,11 +21,6 @@ function extractRunePagesFromElement($, champion, position) {
 
     const name = `${champion} ${upperFirst(position)} PR${stats[0]} WR${stats[1]}`;
 
-    const styles = $(runePageElement)
-      .find('.champion-overview__data .perk-page .perk-page__item--mark img')
-      .map(getPerkIdFromImg)
-      .get();
-
     // normal runes
     let selectedPerkIds = $(runePageElement)
       .find('.champion-overview__data .perk-page .perk-page__item--active img')
@@ -42,9 +37,7 @@ function extractRunePagesFromElement($, champion, position) {
 
     return {
       name,
-      primaryStyleId: styles[0],
-      subStyleId: styles[1],
-      selectedPerkIds,
+      selectedPerkIds: selectedPerkIds,
       bookmark: {
         src: url + champion + '/statistics/' + position,
         meta: {

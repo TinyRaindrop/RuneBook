@@ -9,7 +9,7 @@
             <img draggable="false" class="ui tiny image circular photo"
               src={opts.champion ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/${this.opts.champion}.png` : "./img/unknown.png"}>
             <img draggable="false" class="ui tiny-ring image circular" style="position: absolute; top: -2px; left: 12px;" src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
-            <img if={ opts.autochamp && opts.champselect } draggable="false" class="ui tiny-spin image circular" style="position: absolute; top: -10px; left: 4px;" src="./img/ring_spinner.png">
+            <img if={ opts.autochamp && opts.champselect.active } draggable="false" class="ui tiny-spin image circular" style="position: absolute; top: -10px; left: 4px;" src="./img/ring_spinner.png">
           </div>
           
           <div class="column middle aligned">

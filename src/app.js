@@ -1,5 +1,6 @@
 var settings = require('./settings');
 var freezer = require('./state');
+const isDev = require('electron-is-dev');
 
 if(settings.get("darktheme") == null){
 	const { nativeTheme } = require('electron').remote.require('electron')
@@ -12,7 +13,9 @@ freezer.get().configfile.set({
 	leaguepath: settings.get("leaguepath"),
 	pathdiscovery: settings.get("pathdiscovery"),
 	darktheme: settings.get("darktheme"),
-	lang: settings.get("lang")
+	favautoupload: settings.get("favautoupload"),
+	lang: settings.get("lang"),
+	minimizetotray: settings.get("minimizetotray")
 });
 
 freezer.get().set("autochamp", settings.get("autochamp"));
@@ -21,10 +24,22 @@ freezer.get().tab.set({ active: settings.get("lasttab"), loaded: true });
 var request = require('request');
 
 var {ipcRenderer} = require('electron');
-ipcRenderer.on('update:ready', (event, arg) => {
-	console.log("github new latest found")
-	freezer.get().set("updateready", true);
+ipcRenderer.on('updateinfo:ready', (event, arg) => {
+	// Determining whether an update is available
+	var appVersion = require('electron').remote.app.getVersion();
+	latestv = arg.tag_name.substring(1);
+	isUpdateAvailable = latestv !== appVersion && !isDev;
+
+	// Is this really necessary? => The log can only be seen by Dev anyway
+	if(isUpdateAvailable){
+		console.log("github new latest found");
+	}
+
+	// storage changelog and if an update is available
+	freezer.get().set("updateready", isUpdateAvailable);
+	freezer.get().set("changelogbody", arg.body);
 });
+
 ipcRenderer.on('update:downloaded', (event, arg) => {
 	console.log("update downloaded")
 	freezer.emit("update:downloaded");
@@ -53,9 +68,32 @@ freezer.on("darktheme:switch", (val) => {
 	settings.set("darktheme", val);
 });
 
+freezer.on("favautoupload:switch", (val) => {
+	freezer.get().configfile.set("favautoupload", val);
+	settings.set("favautoupload", val);
+	console.log('fav:', val);
+});
+
 freezer.on("lang:update", (val) => {
 	freezer.get().configfile.set("lang", val);
 	settings.set("lang", val);
+});
+
+(setMinimizeButtonBehaviour = () => {
+	minimizetotray = settings.get("minimizetotray")
+	console.log(minimizetotray)
+
+	if (minimizetotray === true)
+		ipcRenderer.send("minimizetotray:enabled")
+	else
+		ipcRenderer.send("minimizetotray:disabled")
+})()
+
+freezer.on("minimizetotray:switch", (val) => {
+	freezer.get().configfile.set("minimizetotray", val);
+	settings.set("minimizetotray", val);
+
+	setMinimizeButtonBehaviour()
 });
 
 freezer.on("leaguepath:change", (leaguepath) => {
@@ -76,7 +114,7 @@ freezer.on("changelog:ready", () => {
 	var appVersion = require('electron').remote.app.getVersion();
 	console.log(appVersion, settings.get("changelogversion"))
 	if(settings.get("changelogversion") != appVersion) {
-		// freezer.get().set("showchangelog", true);
+		freezer.get().set("showchangelog", true);
 		settings.set("changelogversion", appVersion);
 	}
 });
@@ -91,6 +129,13 @@ request('https://ddragon.leagueoflegends.com/api/versions.json', function (error
 });
 
 freezer.on('version:set', (ver) => {
+	request('https://ddragon.leagueoflegends.com/cdn/'+ver+'/data/en_US/runesReforged.json', function(error, response, data) {
+		if(!error && response && response.statusCode == 200){
+			freezer.get().set('runesreforgedinfo', JSON.parse(data));
+		}
+		else throw Error("Couldn't fetch runesReforged.json from ddragon.")
+	});
+
 	request('https://ddragon.leagueoflegends.com/cdn/'+ver+'/data/en_US/champion.json', function(error, response, data) {
 		if(!error && response && response.statusCode == 200){
 			freezer.get().set('championsinfo', JSON.parse(data).data);
@@ -129,9 +174,7 @@ function loadPlugins() {
 loadPlugins();
 
 freezer.on('champion:choose', (champion) => {
-
 	var state = freezer.get();
-
 	var plugin = state.tab.active;
 
 	// Check if champion is already been cached before asking the remote plugin
@@ -162,13 +205,12 @@ freezer.on("tab:switch", (tab) => {
 	settings.set("lasttab", tab);
 
 	var state = freezer.get();
-
 	var plugin = state.tab.active;
-	var champion = freezer.get().current.champion;
+	var champion = state.current.champion;
 
 	// Check if champion is already been cached before asking the remote plugin
 	if(state.plugins.remote[plugin] && state.plugins.remote[plugin].cache[champion]) {
-		freezer.get().current.set({ champion, champ_data: state.plugins.remote[plugin].cache[champion] || {pages: {}} });
+		freezer.get().current.set({ champ_data: state.plugins.remote[plugin].cache[champion] || {pages: {}} });
 		console.log("CACHE HIT!");
 		return;
 	}
@@ -184,32 +226,32 @@ freezer.on("tab:switch", (tab) => {
 			freezer.get().plugins.remote[plugin].cache.set(champion, res);
 		
 		if(freezer.get().tab.active != state.tab.active) return;
-		freezer.get().current.set({ champion: freezer.get().current.champion, champ_data: res || {pages: {}} });
+		freezer.get().current.set({ champ_data: res || {pages: {}} });
 		freezer.get().tab.set({ loaded: true });
 	});
 });
 
-freezer.on('page:fav', (champion, page) => {
+freezer.on('page:fav', (champion, pagename) => {
 	var state = freezer.get();
-	plugins[state.tab.active].favPage(champion, page);
+	plugins[state.tab.active].favPage(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
 });
 
-freezer.on('page:delete', (champion, page) => {
+freezer.on('page:delete', (champion, pagename) => {
 	var state = freezer.get();
-	plugins[state.tab.active].deletePage(champion, page);
+	plugins[state.tab.active].deletePage(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
 });
 
-freezer.on('page:unlinkbookmark', (champion, page) => {
-	if(freezer.get().lastbookmarkedpage.champion == champion && freezer.get().lastbookmarkedpage.page == page)
+freezer.on('page:unlinkbookmark', (champion, pagename) => {
+	if(freezer.get().lastbookmarkedpage.champion == champion && freezer.get().lastbookmarkedpage.page == pagename)
 		freezer.get().lastbookmarkedpage.set({page: null, champion: null});
 	var state = freezer.get();
-	plugins[state.tab.active].unlinkBookmark(champion, page);
+	plugins[state.tab.active].unlinkBookmark(champion, pagename);
 	plugins[state.tab.active].getPages(champion, (res) => {
 		state.current.champ_data.set(res);	
 	});
@@ -226,12 +268,12 @@ freezer.on('page:bookmark', (champion, pagename) => {
 	freezer.get().lastsyncedpage.set({ champion: null, page: null, loading: false });
 });
 
-freezer.on('page:syncbookmark', (champion, page) => {
-	freezer.get().lastsyncedpage.set({champion, page, loading: true});
+freezer.on('page:syncbookmark', (champion, pagename) => {
+	freezer.get().lastsyncedpage.set({champion, page: pagename, loading: true});
 
 	var state = freezer.get();
 
-	page = state.current.champ_data.pages[page];
+	page = state.current.champ_data.pages[pagename];
 	console.log(page)
 
 	plugins[page.bookmark.remote.id].syncBookmark(page.bookmark, (_page) => {
@@ -247,29 +289,27 @@ freezer.on('page:syncbookmark', (champion, page) => {
 	});
 });
 
-freezer.on('page:upload', (champion, page) => {
+freezer.on('page:upload', (champion, pagename) => {
 	var state = freezer.get();
-	console.log("DEV page", page);
-	console.log("DEV page data", state.current.champ_data.pages[page]);
-	console.log("DEV state pages", state.current.champ_data.pages);
-	page_data = state.current.champ_data.pages[page];
-	page_data.name = page;
-	page_data.current = true;
+	console.log("Upload:", pagename);
+	console.log("State pages", state.current.champ_data.pages);
+    var page = state.current.champ_data.pages[pagename].toJS();
+	page.current = true;
+    console.log('upload2', page);
 
 	console.log("page.id, page.isEditable", state.connection.page.id, state.connection.page.isEditable);
 	if(state.connection.page.id && state.connection.page.isEditable && state.connection.summonerLevel >= 10) {
 		freezer.off('/lol-perks/v1/currentpage:Update');
-		freezer.get().lastuploadedpage.set({ champion, page, loading: true });
+		freezer.get().lastuploadedpage.set({ champion, page: pagename, loading: true });
 		api.del("/lol-perks/v1/pages/" + freezer.get().connection.page.id).then((res) => {
 			console.log("api delete current page", res);
 
 			// stat shards check
-			page_data = freezer.get().current.champ_data.pages[page].toJS();
-			if(!page_data.selectedPerkIds[6] && !page_data.selectedPerkIds[7] && !page_data.selectedPerkIds[8]) {
-				page_data.selectedPerkIds = page_data.selectedPerkIds.concat([5008, 5002, 5003]);
+			if(!page.selectedPerkIds[6] && !page.selectedPerkIds[7] && !page.selectedPerkIds[8]) {
+				page.selectedPerkIds = page.selectedPerkIds.concat([5008, 5002, 5003]);
 			}
 
-			api.post("/lol-perks/v1/pages/", page_data).then((res) => {
+			api.post("/lol-perks/v1/pages/", page).then((res) => {
 				if(!res) {
 					console.log("Error: no response after page upload request.");
 					api.get("/lol-perks/v1/currentpage").then((res) => {
@@ -284,11 +324,11 @@ freezer.on('page:upload', (champion, page) => {
 					freezer.on('/lol-perks/v1/currentpage:Update', handleCurrentPageUpdate);
 				});
 				freezer.on('/lol-perks/v1/currentpage:Update', handleCurrentPageUpdate);
-				freezer.get().lastuploadedpage.set({ champion, page, valid: res.isValid === true, loading: false });
+				freezer.get().lastuploadedpage.set({ champion, page: pagename, valid: res.isValid === true, loading: false });
 				
 				var state = freezer.get();
 				if(plugins[state.tab.active].local) {
-					plugins[state.tab.active].confirmPageValidity(champion, page, res);
+					plugins[state.tab.active].confirmPageValidity(champion, pagename, res);
 					plugins[state.tab.active].getPages(champion, (res) => {
 						state.current.champ_data.set(res);
 					});
@@ -362,21 +402,18 @@ freezer.on('/lol-perks/v1/perks:Update', (data) => {
 freezer.on('/lol-perks/v1/currentpage:Update', handleCurrentPageUpdate);
 
 freezer.on('/lol-champ-select/v1/session:Delete', () => {
-	freezer.get().set("champselect", false);
+	freezer.get().champselect.set({ active: false, gameMode: null, favUploaded: false });
 });
 
 freezer.on('/lol-champ-select/v1/session:Update', (data) => {
-	console.log(data);
-	var action = data.myTeam.find((el) => data.localPlayerCellId === el.cellId);
-	if(!action) return;
-	if(data.timer.phase !== "FINALIZATION") freezer.get().set("champselect", true);
-	else freezer.get().set("champselect", false);
-	if(freezer.get().autochamp === false) return;
-	if(action.championId === 0) return;
-	var champions = freezer.get().championsinfo;
-	var champion = Object.keys(champions).find((el) => champions[el].key == action.championId);
-	console.log(champion);
-	freezer.emit('champion:choose', champion);
+    console.log(data);
+    if (freezer.get().champselect.gameMode === null) {
+        api.get('/lol-gameflow/v1/session').then((gameflowData) => {
+            freezer.get().champselect.set({ gameMode: gameflowData.gameData.queue.gameMode });
+            console.log(freezer.get().champselect.gameMode);
+        });
+    }
+    handleChampionUpdate(data);
 });
 
 freezer.on("autochamp:enable", () => {
@@ -387,16 +424,59 @@ freezer.on("autochamp:enable", () => {
 	api.get("/lol-champ-select/v1/session").then((data) => {
 		console.log(data)
 		if(!data) return;
-		var action = data.myTeam.find((el) => data.localPlayerCellId === el.cellId);
-		if(!action) return;
-		if(data.timer.phase !== "FINALIZATION") freezer.get().set("champselect", true);
-		var champions = freezer.get().championsinfo;
-		var champion = Object.keys(champions).find((el) => champions[el].key == action.championId);
-		console.log(champion)
-		// if(champion !== freezer.get().current.champion) freezer.get().tab.set("active", "local"); // Avoid request spamming
-		freezer.emit('champion:choose', champion);
+		handleChampionUpdate(data);
 	});
 });
+
+function handleChampionUpdate(data) {
+    var state = freezer.get();
+	var player = data.myTeam.find((el) => data.localPlayerCellId === el.cellId);
+	if (!player) return;
+
+	state.champselect.set({ active: ((data.timer.phase !== 'FINALIZATION') ? true : false) });
+
+	if (player.championId === 0) return;		// no champ selected = do nothing
+	var champions = state.championsinfo;
+    var champion = Object.keys(champions).find((el) => champions[el].key == player.championId);
+
+	// Detect champion hover
+	if (state.autochamp === true) {
+		console.log(champion);
+		// Switch to local and dont query remote plugin. Undesirable for remote-only users, but prevents request spam
+		// if(champion !== state.current.champion) state.tab.set("active", "local"); 
+		freezer.emit('champion:choose', champion);
+    }
+    
+    // Favpage autoupload works only in Classic SR games.
+    // In ARAM & Rotating game modes such automation is disruptive
+    if (state.champselect.gameMode !== 'CLASSIC') return;
+    api.get('/lol-champ-select/v1/current-champion').then((championId) => {
+        console.log('champ locked:', championId);
+        if (championId !== 0)
+            handleFavPageUpload(championId); 
+    });
+}
+
+function handleFavPageUpload(championId) {
+    var state = freezer.get();
+    console.log(state);
+    var champions = state.championsinfo;
+    var champion = Object.keys(champions).find((el) => champions[el].key == championId);
+    
+    // If favpage upload is enabled & not ARAM
+    if (!state.configfile.favautoupload) return;
+    // Quit if favorite page was already uploaded, 
+    // or current champion doesn't match what is hovered ingame
+    if (state.champselect.favUploaded || state.current.champion !== champion) return;
+    // Is there a favpage for current champ?
+    var favpage = state.current.champ_data.fav;
+    if (!favpage) return;
+    
+    // All checks passed
+    console.log("Uploading Fav page:", favpage);
+    freezer.emit('page:upload', champion, favpage);
+    state.champselect.set({ favUploaded: true });
+}
 
 freezer.on("autochamp:disable", () => {
 	freezer.get().set("autochamp", false);
@@ -424,9 +504,9 @@ connector.on('connect', (data) => {
 connector.on('disconnect', () => {
 	console.log("client closed");
 	api.destroy();
+    freezer.get().champselect.set({ active: false, gameMode: null, favUploaded: false });
 	freezer.get().connection.set({ page: null, summonerLevel: 0 });
 	freezer.get().session.set({ connected: false, state: "" });
-	freezer.get().set("champselect", false);
 });
 
 // Start listening for the LCU client

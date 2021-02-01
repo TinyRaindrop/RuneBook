@@ -1,5 +1,5 @@
 <page-list>
-  <h2 if={ opts.current.champion && _.isEmpty(opts.current.champ_data.pages.toJS()) } class="ui center aligned icon header">
+  <h2 if={ opts.current.champion && _.isEmpty(opts.current.champ_data.pages.toJS()) } class="ui center aligned icon header nopages">
     <virtual if={ opts.plugins.local[opts.tab.active] }>
       <i class="sticky note outline icon"></i>
       <div class="content">
@@ -18,26 +18,26 @@
     </virtual>
   </h2>
 
-  <div if={ opts.current.champion } class="ui middle aligned relaxed divided runepage list" style="height: 100%;">
+  <div if={ opts.current.champion } class="ui middle aligned relaxed divided runepage list">
     <div class="item" each={ page, key in opts.current.champ_data.pages }>
       <div class="buttons" data-key={ key }>
         <div class={ opts.connection.page && opts.connection.page.isEditable && opts.connection.summonerLevel >= 10 ? "ui icon button" : "ui icon button disabled" } data-key={key} onclick={ uploadPage } data-tooltip={ i18n.localise('pagelist.uploadpage') } data-position="left center" data-inverted="">
           <i class={ opts.lastuploadedpage.page == key && opts.lastuploadedpage.champion == opts.current.champion ? (opts.lastuploadedpage.loading ? "notched circle loading icon" : (opts.lastuploadedpage.valid === false ? "warning sign icon" : "checkmark icon")) : "upload icon" } data-key={key}></i>
         </div>
         
-        <!-- <div if={ opts.plugins.local[opts.tab.active] } class="ui icon button" onclick={ setFav } data-key={key}>
+        <div if={ opts.plugins.local[opts.tab.active] && opts.favautoupload } class="ui icon button" onclick={ setFav } data-key={key} data-tooltip={ i18n.localise('pagelist.favautoupload')} data-position="left center" data-inverted="">
           <i class={ key == opts.current.champ_data.fav ? "heart icon" : "heart outline icon" } data-key={key}></i>
-        </div> -->
+        </div>
         
         <div if={ opts.plugins.local[opts.tab.active] && page.bookmark } class="ui icon button" data-key={key} data-tooltip={ i18n.localise('pagelist.syncfrom') + page.bookmark.remote.name} data-position="left center" data-inverted="" onclick={ syncBookmark }>
           <i class={ opts.lastsyncedpage.page == key && opts.lastsyncedpage.champion == opts.current.champion ? (opts.lastsyncedpage.loading ? "sync alternate icon loading" : "checkmark icon") : "sync alternate icon" } data-key={key}></i>
         </div>
 
-        <div if={ opts.plugins.local[opts.tab.active] } class="ui icon button {red: !page.bookmark}" data-key={key} data-tooltip={page.bookmark ? i18n.localise('pagelist.unlink') : ""} data-position="left center" data-inverted="" onclick={ page.bookmark ? unlinkBookmark : deletePage }>
+        <div if={ opts.plugins.local[opts.tab.active] } class="ui icon button {red: !page.bookmark}" data-key={key} data-tooltip={page.bookmark ? i18n.localise('pagelist.unlink') : i18n.localise('pagelist.delete')} data-position="left center" data-inverted="" onclick={ page.bookmark ? unlinkBookmark : deletePage }>
           <i class={page.bookmark ? "unlink icon" : "trash icon"} data-key={key}></i>
         </div>
 
-        <div if={ opts.plugins.remote[opts.tab.active] } class="ui icon button" data-key={key} onclick={ bookmarkPage } data-tooltip={ i18n.localise('pagelist.bookmarkpage') } data-position="left center" data-inverted="">
+        <div if={ opts.plugins.remote[opts.tab.active] && opts.plugins.remote[opts.tab.active].bookmarks} class="ui icon button" data-key={key} onclick={ bookmarkPage } data-tooltip={ i18n.localise('pagelist.bookmarkpage') } data-position="left center" data-inverted="">
           <i class={opts.lastbookmarkedpage.page == key && opts.lastbookmarkedpage.champion == opts.current.champion ? "checkmark icon" : "bookmark icon"} data-key={key}></i>
         </div>
       </div>
@@ -60,7 +60,7 @@
   <script>
 
 		this.on('updated', function() {
-      if (process.platform != 'darwin') $('.page-list-tooltip').popup()
+      if (process.platform != 'darwin') $('.page-list-tooltip').popup();
 		});
     this.on('mount', function() {
       if (process.platform != 'darwin') $('.page-list-tooltip').popup()
