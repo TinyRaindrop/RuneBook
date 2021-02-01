@@ -6,10 +6,19 @@
         <div class="row">
           
           <div class="column current-champion">
-            <img draggable="false" class="ui tiny image circular photo"
-              src={opts.champion ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/${this.opts.champion}.png` : "./img/unknown.png"}>
-            <img draggable="false" class="ui tiny-ring image circular" style="position: absolute; top: -2px; left: 12px;" src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
-            <img if={ opts.autochamp && opts.champselect.active } draggable="false" class="ui tiny-spin image circular" style="position: absolute; top: -10px; left: 4px;" src="./img/ring_spinner.png">
+            <div class="wrapper">
+              <img draggable="false" 
+                  class="ui tiny image circular face"
+                  src={opts.champion ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/${this.opts.champion}.png` : "./img/unknown.png"}>
+              <img draggable="false" 
+                  class="ui tiny-ring image circular"
+                  style="position: absolute; top: -2px; left: 12px;"
+                  src={opts.autochamp ? "./img/ring_active.png" : "./img/ring.png"}>
+              <img if={ opts.autochamp && opts.champselect.active } draggable="false" 
+                  class="ui tiny-spin image circular" 
+                  style="position: absolute; top: -10px; left: 4px;" 
+                src="./img/ring_spinner.png">
+            </div>
           </div>
           
           <div class="column middle aligned">
@@ -38,13 +47,49 @@
   
   <div class="ui popup autopick" style="width: 250px;"><i1-8n>champion.autopick.tooltip</i1-8n></div>
 
-  <div class="ui popup champion-photos">
-    <div each={ champion in freezer.get().favChampions } class="photo">
-      <img draggable="false" class="ui mini circular image" src={freezer.get().lolversions[0] ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champion.name+".png" : "./img/unknown.png"} onClick={favChampionClick} data-key={ champion.name }>
+  <div class="ui popup fav-champions">
+    <div each={ champion in freezer.get().favChampions } class="item">
+      <img draggable="false" class="ui mini circular image face" src={freezer.get().lolversions[0] ? `https://ddragon.leagueoflegends.com/cdn/${freezer.get().lolversions[0]}/img/champion/`+champion.name+".png" : "./img/unknown.png"} onClick={favChampionClick} data-key={ champion.name }>
     </div>
   </div>
 
   <style>
+    .fav-champions {
+      display: flex !important;
+      flex-direction: row;
+      justify-content: center;
+      visibility: hidden;
+    }
+
+    .fav-champions > .item {
+      margin: 0 8px; 
+      padding: 0; 
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .fav-champions > .item > img.face,
+    .current-champion img.face {
+      opacity: 1;
+      transition: transform 0.2s ease-in-out;
+        transform-origin: center center;
+    }
+
+    .fav-champions > .item:hover > img.face {
+      transform: scale(1.2);
+    }
+
+    .current-champion:hover img.face {
+      transform: scale(1.1);
+    }
+
+    .current-champion > .wrapper {
+      display: inline-block;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
     .tiny-ring {
       width: 84px;
       height: 84px;
@@ -94,11 +139,12 @@
         },
       });
 
-      $('.current-champion')
+      $('.current-champion > .wrapper')
         .popup({
-          popup   : $('.champion-photos'),
-          /*target  : '.current-champion > .photo',*/
+          popup   : $('.fav-champions'),
+          target  : '.current-champion',
           position: 'right center',
+          inline: 'true',
           distanceAway  : -140,
           on      : 'click',
           delay   : {

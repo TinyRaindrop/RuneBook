@@ -364,18 +364,10 @@ current-page .ui.button {
 
 .ui.popup::before {
   background: var(--bg-accent-1) !important;
-  border-bottom: 1px solid var(--control) !important;
-  border-right: 1px solid var(--control) !important;
-  box-shadow: none !important;
 }
 
-.ui.popup.bottom::before {
-  background: var(--bg-accent-1) !important;
-  border-left: 1px solid var(--control) !important;
-  border-bottom: none !important;
-  border-right: none !important;
-  border-top: 1px solid var(--control) !important;
-  box-shadow: none !important;
+.ui.right.popup:before {
+  box-shadow: -1px 1px 0 0 var(--control) !important;
 }
 
 

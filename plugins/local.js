@@ -64,6 +64,15 @@ var plugin = {
 		else if(store.get(`local.${champion}.pages.${pagename}.isValid`) === false) {
 			store.set(`local.${champion}.pages.${pagename}`, res);
 		}
+	},
+
+	getFavChampions(callback) {
+		var res = store.get(`local.favChampions`) || [];
+		callback(res);
+	},
+
+	setFavChampions(favChampions) {
+		store.set(`local.favChampions`, favChampions);
 	}
 }
 
