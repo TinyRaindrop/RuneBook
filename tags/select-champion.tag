@@ -19,6 +19,8 @@
                   style="position: absolute; top: -10px; left: 4px;" 
                 src="./img/ring_spinner.png">
             </div>
+
+            <i class="large red heart icon fav-champion"></i>
           </div>
           
           <div class="column middle aligned">

@@ -406,14 +406,14 @@ freezer.on('/lol-champ-select/v1/session:Delete', () => {
 });
 
 freezer.on('/lol-champ-select/v1/session:Update', (data) => {
-    console.log(data);
-    if (freezer.get().champselect.gameMode === null) {
-        api.get('/lol-gameflow/v1/session').then((gameflowData) => {
-            freezer.get().champselect.set({ gameMode: gameflowData.gameData.queue.gameMode });
-            console.log(freezer.get().champselect.gameMode);
-        });
-    }
-    handleChampionUpdate(data);
+	console.log(data);
+	if (freezer.get().champselect.gameMode === null) {
+		api.get('/lol-gameflow/v1/session').then((gameflowData) => {
+			freezer.get().champselect.set({ gameMode: gameflowData.gameData.queue.gameMode });
+			console.log(freezer.get().champselect.gameMode);
+		});
+	}
+	handleChampionUpdate(data);
 });
 
 freezer.on("autochamp:enable", () => {
@@ -429,7 +429,7 @@ freezer.on("autochamp:enable", () => {
 });
 
 function handleChampionUpdate(data) {
-    var state = freezer.get();
+	var state = freezer.get();
 	var player = data.myTeam.find((el) => data.localPlayerCellId === el.cellId);
 	if (!player) return;
 
@@ -437,7 +437,7 @@ function handleChampionUpdate(data) {
 
 	if (player.championId === 0) return;		// no champ selected = do nothing
 	var champions = state.championsinfo;
-    var champion = Object.keys(champions).find((el) => champions[el].key == player.championId);
+	var champion = Object.keys(champions).find((el) => champions[el].key == player.championId);
 
 	// Detect champion hover
 	if (state.autochamp === true) {
@@ -445,37 +445,37 @@ function handleChampionUpdate(data) {
 		// Switch to local and dont query remote plugin. Undesirable for remote-only users, but prevents request spam
 		// if(champion !== state.current.champion) state.tab.set("active", "local"); 
 		freezer.emit('champion:choose', champion);
-    }
+	}
     
-    // Favpage autoupload works only in Classic SR games.
-    // In ARAM & Rotating game modes such automation is disruptive
-    if (state.champselect.gameMode !== 'CLASSIC') return;
-    api.get('/lol-champ-select/v1/current-champion').then((championId) => {
-        console.log('champ locked:', championId);
-        if (championId !== 0)
-            handleFavPageUpload(championId); 
-    });
+	// Favpage autoupload is enabled only for Classic SR games.
+	// In ARAM & Rotating game modes such automation is disruptive
+	if (state.champselect.gameMode !== 'CLASSIC') return;
+	api.get('/lol-champ-select/v1/current-champion').then((championId) => {
+		console.log('champ locked:', championId);
+		if (championId !== 0)
+			handleFavPageUpload(championId); 
+	});
 }
 
 function handleFavPageUpload(championId) {
-    var state = freezer.get();
-    console.log(state);
-    var champions = state.championsinfo;
-    var champion = Object.keys(champions).find((el) => champions[el].key == championId);
-    
-    // If favpage upload is enabled & not ARAM
-    if (!state.configfile.favautoupload) return;
-    // Quit if favorite page was already uploaded, 
-    // or current champion doesn't match what is hovered ingame
-    if (state.champselect.favUploaded || state.current.champion !== champion) return;
-    // Is there a favpage for current champ?
-    var favpage = state.current.champ_data.fav;
-    if (!favpage) return;
-    
-    // All checks passed
-    console.log("Uploading Fav page:", favpage);
-    freezer.emit('page:upload', champion, favpage);
-    state.champselect.set({ favUploaded: true });
+	var state = freezer.get();
+	console.log(state);
+	var champions = state.championsinfo;
+	var champion = Object.keys(champions).find((el) => champions[el].key == championId);
+	
+	// If favpage upload is enabled & not ARAM
+	if (!state.configfile.favautoupload) return;
+	// Quit if favorite page was already uploaded, 
+	// or current champion doesn't match what is hovered ingame
+	if (state.champselect.favUploaded || state.current.champion !== champion) return;
+	// Is there a favpage for current champ?
+	var favpage = state.current.champ_data.fav;
+	if (!favpage) return;
+	
+	// All checks passed
+	console.log("Uploading Fav page:", favpage);
+	freezer.emit('page:upload', champion, favpage);
+	state.champselect.set({ favUploaded: true });
 }
 
 freezer.on("autochamp:disable", () => {
@@ -497,8 +497,8 @@ const connector = new LCUConnector(freezer.get().configfile.pathdiscovery ? unde
 const api = require('./lcu-api');
 
 connector.on('connect', (data) => {
-    console.log("client found");
-    api.bind(data);
+	console.log("client found");
+	api.bind(data);
 });
 
 connector.on('disconnect', () => {
